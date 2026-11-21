@@ -1,0 +1,17 @@
+{
+  "name": "YTBender — Offline-First YouTube Trend & Content Planning Studio",
+  "short_name": "YTBender",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0b0d13",
+  "theme_color": "#ff3b5c",
+  "description": "Offline-First YouTube Trend Analyzer, Niche Topic Planner, Creative Blueprint & Short/Long-Form Funnel Sequencer.",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

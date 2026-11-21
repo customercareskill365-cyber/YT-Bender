@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YTBender — YouTube Creator Studio &amp; Content Planner</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- ==========================================================================
+       App Top Header Bar (Spacious, Human-Friendly Navigation & Step Bar)
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-logo" title="YTBender Logo">
+        <img src="logo.png" alt="YTBender Logo" class="brand-logo-img" />
+      </div>
+      <div class="brand-title">
+        <h1>YTBender</h1>
+        <span>YouTube Content Planner</span>
+      </div>
+      <button type="button" id="headerActiveNiche" class="header-niche-pill" title="Click to change your YouTube niche">
+        <span class="niche-pill-prefix">Niche:</span>
+        <strong id="headerNicheLabel">Tech &amp; AI Tools</strong>
+        <span class="niche-pill-edit">&#9998;</span>
+      </button>
+    </div>
+
+    <!-- 3 Simple Step Tabs (Always visible side-by-side, no scrollbar) -->
+    <nav class="stage-nav" aria-label="Workflow Steps">
+      <button class="stage-nav-btn nav-btn active" data-tab="trends" data-stage="stage-1" title="Step 1: Find trending topics in your niche">
+        <span class="step-badge">Step 1</span>
+        <span>Find Topics</span>
+        <span id="navTopicBadge" class="nav-badge">6</span>
+      </button>
+
+      <button class="stage-nav-btn nav-btn" data-tab="script" data-stage="stage-2" title="Step 2: Customize style, hooks, and write your script">
+        <span class="step-badge">Step 2</span>
+        <span>Write Script</span>
+      </button>
+
+      <button class="stage-nav-btn nav-btn" data-tab="sequence" data-stage="stage-3" title="Step 3: Plan your upload order and calendar">
+        <span class="step-badge">Step 3</span>
+        <span>Upload Plan</span>
+        <span id="navSeqBadge" class="nav-badge">6</span>
+      </button>
+    </nav>
+
+    <div class="header-controls">
+      <div class="viewport-switcher" id="viewportSwitcher" role="group" aria-label="Switch Device View">
+        <button type="button" class="vp-btn active" data-viewport="desktop" title="Switch to Full Desktop View">&#128187; Desktop</button>
+        <button type="button" class="vp-btn" data-viewport="tablet" title="Switch to Tablet View (820px)">&#128223; Tablet</button>
+        <button type="button" class="vp-btn" data-viewport="mobile" title="Switch to Mobile Phone View (390px)">&#128241; Mobile</button>
+      </div>
+
+      <div class="status-pill" id="headerStatusPill" title="Works 100% offline on your computer">
+        <span id="netStatusDot" class="status-dot online"></span>
+        <span id="netStatusText" style="display:none;">Offline-First Ready</span>
+        <span id="aiStatusText">Offline Ready</span>
+      </div>
+
+      <button id="pwaInstallBtn" class="btn btn-primary btn-sm" style="display:none;" title="Install YTBender as a standalone desktop app">
+        &#11015;&#65039; Install App
+      </button>
+
+      <button id="headerDriveSyncBtn" class="btn btn-success btn-sm" title="Save your scripts and calendar to your computer / Google Drive folder">
+        &#128190; Save Work
+      </button>
+
+      <button id="drawerToggleBtn" class="btn btn-secondary btn-sm nav-btn" data-tab="integrations" title="Connect Google Drive, AI tools, or export backups">
+        &#9881;&#65039; Settings
+      </button>
+    </div>
+  </header>
+
+  <!-- Backward-compatibility Anchor Hooks -->
+  <div id="tab-trends" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+  <div id="tab-topics" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+  <div id="tab-blueprint" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+  <div id="tab-script" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+  <div id="tab-sequence" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+  <div id="tab-integrations" class="tab-alias-anchor" style="display:none;" aria-hidden="true"></div>
+
+  <!-- ==========================================================================
+       Main Workspace
+       ========================================================================== -->
+  <div class="app-body">
+    <main class="main-content">
+      <!-- ====================================================================
+           STAGE 1: TOPIC & TREND DISCOVERY (Niche Radar + Topic Generator)
+           ==================================================================== -->
+      <section id="tab-stage-1" class="stage-panel tab-panel active" data-stage="stage-1" data-tab="trends">
+        <div class="page-header">
+          <div>
+            <h2>Stage 1: Topic &amp; Trend Discovery</h2>
+            <p>Target high-demand niches, search YouTube trends, and generate ranked topics engineered for high search volume and algorithmic velocity.</p>
+          </div>
+          <div class="header-actions">
+            <button id="quickShortsModeBtn" class="btn btn-secondary btn-sm" title="1-click toggle for High-Velocity 45s Shorts Mode (9:16)">
+              ⚡ Quick Shorts Mode (9:16)
+            </button>
+            <select id="topicFormatFilter" title="Filter topics by video format">
+              <option value="All">All Formats (Long + Shorts)</option>
+              <option value="Long-form">Long-form (16:9) Only</option>
+              <option value="Short-form">Short-form (9:16) Only</option>
+              <option value="Both">Funnel Pairs Only</option>
+            </select>
+            <button id="regenerateTopicsBtn" class="btn btn-secondary" title="Re-calculate topics from niche database">
+              &#128260; Refresh Topics
+            </button>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Import channel analytics CSV">
+              &#128194; Import CSV / JSON
+              <input type="file" id="ytFileImportInput" accept=".csv,.json" style="display:none;" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Channel Niche Controller Card -->
+        <div class="card" style="margin-bottom: 18px;">
+          <div class="card-header">
+            <div class="card-title">🎯 Channel Niche Controller</div>
+            <span class="badge badge-lang">Channel Strategy Authority</span>
+          </div>
+
+          <!-- Quick Niche Chips -->
+          <div id="nicheChipList" class="chip-list"></div>
+
+          <div class="form-row" style="margin-bottom: 0;">
+            <div class="form-group" style="flex: 2.2;">
+              <label for="customNicheInput">Channel Target Niche or Sub-Niche</label>
+              <input type="text" id="customNicheInput" placeholder="Enter channel niche (e.g. Tech &amp; AI Tools, Video Editing, Gaming...)" />
+            </div>
+            <div class="form-group">
+              <label for="globalLanguageSelect">Creator Language &amp; Dialect</label>
+              <select id="globalLanguageSelect"></select>
+            </div>
+            <div class="form-group" style="justify-content: flex-end; flex: 0 0 auto;">
+              <label>&nbsp;</label>
+              <button id="analyzeNicheBtn" class="btn btn-primary">
+                Update Niche &amp; Refresh Strategy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dedicated YouTube Keyword Search Bar (SOL-05) -->
+        <div class="card" style="margin-bottom: 18px; border-color: rgba(79, 110, 247, 0.35);">
+          <div class="card-header">
+            <div class="card-title">🔍 Targeted YouTube Keyword Search</div>
+            <span class="badge badge-long">Preserves Channel Niche</span>
+          </div>
+          <div class="form-row" style="margin-bottom: 0;">
+            <div class="form-group" style="flex: 2.5;">
+              <label for="ytKeywordSearchInput">Search Specific YouTube Keyword or Competitor Query</label>
+              <input type="text" id="ytKeywordSearchInput" placeholder="e.g. Ollama deepseek-r1 setup, DaVinci Resolve retention hacks, MrBeast pacing..." />
+            </div>
+            <div class="form-group">
+              <label for="regionSelect">Trend Region</label>
+              <select id="regionSelect">
+                <option value="India (IN)">India (IN)</option>
+                <option value="US / Global">US / Global</option>
+                <option value="UK / Europe">UK / Europe</option>
+                <option value="LATAM / Spain">LATAM / Spain</option>
+                <option value="APAC">APAC</option>
+              </select>
+            </div>
+            <div class="form-group" style="justify-content: flex-end; flex: 0 0 auto;">
+              <label>&nbsp;</label>
+              <button id="fetchYtTrendsBtn" class="btn btn-secondary">
+                &#128269; Search YouTube Trends
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Decluttered Market Stat Cards + Honest Data Source Badge (AUD-03) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">
+            📈 Niche Market Intelligence &amp; Telemetry
+          </div>
+          <span id="kpiDataSourceBadge" class="badge badge-score-high" title="Indicates whether KPIs reflect offline benchmarks or live YouTube telemetry">
+            ⚡ Offline Benchmark Estimate
+          </span>
+        </div>
+        <div class="grid-4" style="margin-bottom: 18px;">
+          <div class="stat-card">
+            <div class="stat-label">Audience Demand (Velocity)</div>
+            <div id="statVelocity" class="stat-value">96 / 100</div>
+            <div class="stat-sub">&#128293; High audience breakout potential</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Est. Earnings per 1K Views (RPM)</div>
+            <div id="statRpm" class="stat-value">$8.50 - $18.00</div>
+            <div class="stat-sub">AdSense + Sponsorship benchmark</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Recommended Format Mix</div>
+            <div id="statFormatMix" class="stat-value" style="font-size:16px;">60% Long / 40% Shorts</div>
+            <div class="stat-sub">Hybrid momentum growth model</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sweet-Spot Duration</div>
+            <div id="statDuration" class="stat-value" style="font-size:16px;">10m 30s | 48s</div>
+            <div class="stat-sub" style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+              <span>Optimal watch time</span>
+              <button id="applyDurationToBpBtn" class="btn btn-secondary btn-sm" style="padding:2px 7px; font-size:10.5px;" title="Apply sweet-spot duration to current video blueprint">
+                Apply to Blueprint &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOAT-01: Creator Revenue & Sponsorship Rate Card Estimator -->
+        <div id="monetizationEstimatorCard" class="card" style="margin-bottom: 18px; border-color: rgba(16, 185, 129, 0.35);">
+          <div class="card-header" style="margin-bottom: 12px;">
+            <div class="card-title">💰 Creator Revenue &amp; Sponsorship Rate Card Estimator</div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <label for="estViewsSelect" style="font-size:12px; font-weight:600; color:var(--text-secondary);">Expected Video Views:</label>
+              <select id="estViewsSelect" style="width:auto; min-width:160px; padding:5px 10px; font-size:12.5px;">
+                <option value="10000">10,000 views</option>
+                <option value="50000" selected>50,000 views</option>
+                <option value="100000">100,000 views</option>
+                <option value="500000">500,000 views</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="stat-card" style="min-height:76px; padding:11px 14px;">
+              <div class="stat-label">Estimated AdSense Revenue (USD &amp; INR ₹)</div>
+              <div id="estAdsenseDisplay" class="stat-value" style="font-size:17px; color:var(--accent-success);">$425 – $900 (₹35,700 – ₹75,600)</div>
+              <div id="estRpmSub" class="stat-sub" style="color:var(--text-secondary);">Region &amp; Niche Adjusted RPM</div>
+            </div>
+            <div class="stat-card" style="min-height:76px; padding:11px 14px;">
+              <div class="stat-label">60s Mid-Roll Integration Rate</div>
+              <div id="estMidRollDisplay" class="stat-value" style="font-size:17px; color:var(--accent-cyan);">$750 – $1,350</div>
+              <div class="stat-sub" style="color:var(--text-secondary);">45s–60s native brand integration</div>
+            </div>
+            <div class="stat-card" style="min-height:76px; padding:11px 14px;">
+              <div class="stat-label">Dedicated Sponsorship Rate</div>
+              <div id="estDedicatedDisplay" class="stat-value" style="font-size:17px; color:#d8b4fe;">$1,600 – $2,800</div>
+              <div class="stat-sub" style="color:var(--text-secondary);">Full dedicated product review / deep dive</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Discovery Grid -->
+        <div class="grid-2">
+          <!-- Left: Winning Angles & YouTube Signals -->
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">💡 Proven Content Angles &amp; Keywords</div>
+              </div>
+              <div style="margin-bottom: 12px;">
+                <div style="font-size:11.5px; color:var(--text-secondary); margin-bottom:6px; font-weight:700; text-transform:uppercase;">
+                  High-Velocity Keywords:
+                </div>
+                <div id="trendingKeywordsList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-secondary); margin-bottom:6px; font-weight:700; text-transform:uppercase;">
+                High-Retention Hook Frameworks:
+              </div>
+              <div id="winningAnglesList"></div>
+            </div>
+
+            <!-- YouTube Trend Signals -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">📊 YouTube Trend Signals</div>
+                <span id="ytSignalsSourceLabel" class="badge badge-lang">Built-in Offline Intelligence</span>
+              </div>
+              <div class="data-table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Video Title / Benchmark</th>
+                      <th>Format</th>
+                      <th>Source / Signal</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ytSignalsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Imported CSV Card (Hidden unless CSV loaded) -->
+            <div id="importedCsvCard" class="card" style="display: none;">
+              <div class="card-header">
+                <div class="card-title">📁 Imported YouTube Studio Analytics &amp; Channel Autopsy</div>
+                <span class="badge badge-score-high">Outlier &amp; Hidden Gem Engine</span>
+              </div>
+              <div id="csvInsightsSummaryBox" style="margin-bottom:12px;"></div>
+              <div class="data-table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Video Title</th>
+                      <th>Views</th>
+                      <th>CTR</th>
+                      <th>AVD</th>
+                      <th>Outlier &amp; Diagnostic</th>
+                      <th>Format</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="importedCsvTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Strategic Ranked Topics -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🚀 Strategic High-Converting Topics</div>
+              <span class="badge badge-score-high">Ranked by Viral Velocity</span>
+            </div>
+
+            <!-- Add Custom Topic Bar -->
+            <div style="background:var(--bg-elevated); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); margin-bottom:14px;">
+              <div class="form-row" style="margin-bottom: 0;">
+                <div class="form-group" style="flex: 2;">
+                  <label for="newTopicTitleInput">Add Your Own Topic Idea</label>
+                  <input type="text" id="newTopicTitleInput" placeholder="e.g. How I Built a 100% Offline AI Workflow for YouTube" />
+                </div>
+                <div class="form-group">
+                  <label for="newTopicFormatSelect">Format</label>
+                  <select id="newTopicFormatSelect">
+                    <option value="Both (Funnel Pair)">Both (Pillar + Teaser)</option>
+                    <option value="Long-form (16:9)">Long-form (16:9)</option>
+                    <option value="Short-form (9:16)">Short-form (9:16)</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 0 0 auto; justify-content: flex-end;">
+                  <label>&nbsp;</label>
+                  <button id="addCustomTopicBtn" class="btn btn-primary btn-sm">+ Add</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Topics Table -->
+            <div class="data-table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Topic &amp; Strategy</th>
+                    <th>Format</th>
+                    <th>Scores</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="topicsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           STAGE 2: SCRIPT & HOOK STUDIO (Creative Blueprint + Script Lab)
+           ==================================================================== -->
+      <section id="tab-stage-2" class="stage-panel tab-panel" data-stage="stage-2" data-tab="script">
+        <div class="page-header">
+          <div>
+            <h2 id="scriptActiveTopicHeader">Active Video Script</h2>
+            <div id="scriptActiveMetaBadges" style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;"></div>
+          </div>
+          <div class="header-actions">
+            <!-- Writer vs Teleprompter Toggle -->
+            <div style="display:inline-flex; background:var(--bg-elevated); padding:3px; border-radius:8px; border:1px solid var(--border-subtle); margin-right:4px;">
+              <button id="scriptModeWriterBtn" class="btn btn-sm btn-secondary" style="border:none; padding:4px 10px; background:transparent;">
+                ✏️ Writer Mode
+              </button>
+              <button id="scriptModeTeleprompterBtn" class="btn btn-sm btn-secondary" style="border:none; padding:4px 10px; background:transparent;">
+                📱 Teleprompter
+              </button>
+            </div>
+
+            <select id="scriptAiProviderSelect" title="Select AI Engine">
+              <option value="offline">Built-in Offline Engine (0ms)</option>
+              <option value="ollama">Local Ollama LLM</option>
+              <option value="openai">ChatGPT (OpenAI)</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="claude">Anthropic Claude</option>
+              <option value="bridge">1-Click Prompt Bridge</option>
+            </select>
+
+            <button id="generateAiScriptBtn" class="btn btn-ai" title="Generate or rewrite script with chosen AI engine">
+              ✨ Polish with AI
+            </button>
+            <button id="openPromptBridgeBtn" class="btn btn-secondary" title="Open 1-Click Prompt Bridge modal for free web ChatGPT / Claude">
+              📋 Prompt Bridge
+            </button>
+            <button id="saveScriptBtn" class="btn btn-success" title="Save script changes offline">
+              💾 Save Script
+            </button>
+            <button id="copyScriptBtn" class="btn btn-secondary" title="Copy full script to clipboard">
+              📋 Copy
+            </button>
+            <button id="exportMarkdownBtn" class="btn btn-secondary" title="Export Markdown script &amp; blueprint">
+              📄 Export .md
+            </button>
+          </div>
+        </div>
+
+        <!-- MOAT-04: Multi-Video Project Vault Bar -->
+        <div class="card project-vault-bar" style="margin-bottom: 18px; padding: 12px 18px; border-color: rgba(168, 85, 247, 0.35);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:260px;">
+              <span class="badge badge-funnel" style="padding:5px 10px;">🗄️ Project Vault</span>
+              <select id="projectVaultSelect" title="Switch between saved multi-video scripts &amp; blueprints" style="flex:1; max-width:460px;"></select>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <button id="saveToVaultBtn" class="btn btn-primary btn-sm" title="Branch and save current topic, blueprint &amp; script as a new project copy in your vault">
+                + Clone as New Project
+              </button>
+              <button id="deleteVaultProjectBtn" class="btn btn-secondary btn-sm" title="Remove selected project from vault">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Blueprint & Retention Controls (All 9 Unguarded DOM IDs Preserved) -->
+        <div class="card" style="margin-bottom: 18px;">
+          <div class="card-header">
+            <div class="card-title">🎬 Video Structure &amp; Retention Blueprint</div>
+            <div style="display:flex; gap:8px; flex-wrap: wrap;">
+              <button id="saveBlueprintBtn" class="btn btn-secondary btn-sm" title="Save Blueprint parameters">
+                💾 Save Blueprint Settings
+              </button>
+              <button id="bpOpenScriptBtn" class="btn btn-primary btn-sm" title="Regenerate full script from blueprint">
+                Generate Full Script from Blueprint &rarr;
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 2.2;">
+              <label for="bpTopicTitleInput">Selected Working Title</label>
+              <input type="text" id="bpTopicTitleInput" />
+            </div>
+            <div class="form-group">
+              <label for="bpFormatSelect">Format &amp; Aspect Ratio</label>
+              <select id="bpFormatSelect">
+                <option value="Long-form (16:9 Widescreen, 10-14m)">Long-form (16:9 Widescreen, 10-14m)</option>
+                <option value="Short-form (9:16 Vertical, 45-58s)">Short-form (9:16 Vertical, 45-58s)</option>
+                <option value="Both (Long-form 16:9 Pillar + Short-form 9:16 Teaser)">Both (Long-form 16:9 Pillar + Short-form 9:16 Teaser)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bpLanguageSelect">Language &amp; Dialect</label>
+              <select id="bpLanguageSelect"></select>
+            </div>
+          </div>
+
+          <!-- 6 Blueprint Parameters Matrix (+ MOAT-01 Code-Switching Selector) -->
+          <div class="blueprint-matrix">
+            <div class="bp-param-card">
+              <h4>1. Tone &amp; Vocal Delivery</h4>
+              <select id="bpToneSelect"></select>
+              <div class="bp-param-note">Sets emotional posture, authority level, and vocal pacing energy.</div>
+            </div>
+
+            <div class="bp-param-card">
+              <h4>2. Retention Pacing Rhythm</h4>
+              <select id="bpPacingSelect"></select>
+              <div class="bp-param-note">Controls WPM speed, visual cut cadence, and pattern interrupt intervals.</div>
+            </div>
+
+            <div class="bp-param-card">
+              <h4>3. Script Narrative Style</h4>
+              <select id="bpScriptStyleSelect"></select>
+              <div class="bp-param-note">Dictates how proof, tension, step breakdowns, and payoffs transition.</div>
+            </div>
+
+            <div class="bp-param-card">
+              <h4>4. Visual &amp; B-Roll Style</h4>
+              <select id="bpVideoStyleSelect"></select>
+              <div class="bp-param-note">Specifies camera framing, screen recording zooms, and motion callouts.</div>
+            </div>
+
+            <div class="bp-param-card">
+              <h4>5. Upload Sequence Link Note</h4>
+              <input type="text" id="bpSequenceNoteInput" />
+              <div class="bp-param-note">How this video links to your Shorts/Long-form funnel pairs.</div>
+            </div>
+
+            <div class="bp-param-card">
+              <h4>6. Code-Switching &amp; Cultural Strategy</h4>
+              <select id="bpCodeSwitchSelect" style="margin-bottom:6px;" title="Dial in your exact bilingual / Hinglish / native language mix"></select>
+              <div id="bpCulturalNotesBox" style="font-size:11.5px; color:var(--text-primary); line-height:1.4;"></div>
+              <div class="bp-param-note">Bilingual code-switching ratio &amp; localization notes.</div>
+            </div>
+          </div>
+
+          <!-- Visual Pacing & Retention Timeline Map -->
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+              <div style="font-weight:700; font-size:13px;">⏱️ Retention Pacing Timeline (DaVinci / Premiere Guide)</div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="badge badge-score-high">Pattern Interrupts Every 45s</span>
+                <button id="copyChaptersBtn" class="btn btn-secondary btn-sm" style="padding:3px 9px; font-size:11px;" title="Copy YouTube Description Chapter Timestamps">
+                  📋 Copy YouTube Chapters
+                </button>
+                <button id="exportNleMarkersBtn" class="btn btn-primary btn-sm" style="padding:3px 9px; font-size:11px;" title="Export DaVinci Resolve &amp; Premiere Pro Timeline Markers (.CSV)">
+                  🎬 Export NLE Timeline Markers (.CSV)
+                </button>
+              </div>
+            </div>
+            <div id="pacingTimelineBar" class="pacing-timeline"></div>
+            <div id="pacingTimelineLegend" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <!-- MOAT-02: Interactive YouTube Home Feed & Thumbnail Packaging Simulator -->
+        <div class="card" style="margin-bottom: 18px; border-color: rgba(255, 59, 92, 0.35);">
+          <div class="card-header">
+            <div class="card-title">🎨 YouTube Feed &amp; Thumbnail Packaging Simulator</div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary btn-sm feed-preview-btn active" data-feed-mode="desktop">🖥️ Desktop Home Feed</button>
+              <button type="button" class="btn btn-secondary btn-sm feed-preview-btn" data-feed-mode="mobile">📱 Mobile Feed</button>
+              <button type="button" class="btn btn-secondary btn-sm feed-preview-btn" data-feed-mode="shorts">⚡ Shorts Shelf</button>
+              <button type="button" id="compareCompetitorToggleBtn" class="btn btn-secondary btn-sm" title="Compare your packaging side-by-side against the #1 niche competitor">⚔️ Compare vs #1 Competitor</button>
+            </div>
+          </div>
+
+          <div class="grid-2" style="align-items: center;">
+            <!-- Left: Packaging Controls & Live Diagnostics -->
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="form-row" style="margin-bottom:0;">
+                <div class="form-group">
+                  <label for="bpThumbBadgeInput">3-Word Thumbnail Text Overlay</label>
+                  <input type="text" id="bpThumbBadgeInput" value="99% MISS THIS" maxlength="28" placeholder="e.g. 99% MISS THIS" />
+                </div>
+                <div class="form-group">
+                  <label for="bpThumbThemeSelect">Thumbnail Contrast Theme</label>
+                  <select id="bpThumbThemeSelect">
+                    <option value="High-Contrast Red/Dark">High-Contrast Red/Dark</option>
+                    <option value="Cyber Blue/Neon">Cyber Blue/Neon</option>
+                    <option value="Finance Emerald/Gold">Finance Emerald/Gold</option>
+                    <option value="Warning Yellow/Black">Warning Yellow/Black</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <label class="btn btn-secondary btn-sm" for="bpThumbImageInput" style="cursor:pointer;">🖼️ Upload Thumbnail Image</label>
+                <input type="file" id="bpThumbImageInput" accept="image/*" style="display:none;" />
+                <button type="button" id="clearThumbImageBtn" class="btn btn-secondary btn-sm" style="display:none;">✖ Clear Image</button>
+              </div>
+
+              <div style="background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                  <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:var(--text-secondary);">
+                    📊 Packaging &amp; Truncation Diagnostics
+                  </span>
+                  <span id="packagingScoreBadge" class="badge badge-score-high">CTR Packaging Score: 94 / 100</span>
+                </div>
+                <div id="packagingDiagnosticsText" style="font-size:12.5px; color:var(--text-primary); line-height:1.5;"></div>
+              </div>
+            </div>
+
+            <!-- Right: Realistic Visual YouTube Thumbnail + Title Card Preview -->
+            <div id="ytFeedPreviewCard" class="yt-feed-preview-card feed-mode-desktop"></div>
+          </div>
+        </div>
+
+        <!-- 2-Column Script & Hook Studio -->
+        <div class="grid-sidebar-right">
+          <!-- Left: Teleprompter / Script Editor Area -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📜 Full Production Script &amp; Teleprompter Editor</div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <button id="restoreScriptRevisionBtn" class="btn btn-secondary btn-sm" style="display:none; padding:3px 9px; font-size:11px;" title="Restore your last backed-up custom script revision">
+                  ⏪ Restore Backed-Up Script
+                </button>
+                <span id="scriptWordCountStats" style="font-size:12px; color:var(--text-secondary); font-weight:600;"></span>
+              </div>
+            </div>
+            <textarea id="scriptEditorTextarea" class="script-editor-area" placeholder="Script content will appear here..."></textarea>
+          </div>
+
+          <!-- Right: Viral Hooks & Recording Checklist -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🪝 3 High-CTR Viral Hooks (0:00 - 0:15)</div>
+                <span class="badge badge-short">1-Click Swap</span>
+              </div>
+              <div id="scriptHooksList"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🎥 Recording &amp; Retention Checklist</div>
+              </div>
+              <ul style="padding-left: 18px; color: var(--text-secondary); font-size: 12.5px; display:flex; flex-direction:column; gap:7px;">
+                <li><strong>0:00 - 0:05 Proof First:</strong> Display final outcome before explaining anything.</li>
+                <li><strong>Zero Throat-Clearing:</strong> Never say "Hey guys, welcome back" in the first 30 seconds.</li>
+                <li><strong>J-Cut Audio Lead:</strong> Start next sentence audio 0.4s before visual camera switch.</li>
+                <li><strong>Abrupt Funnel Bridge:</strong> End abruptly into the next linked video without "Thanks for watching".</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           STAGE 3: CALENDAR & RELEASE (Upload Sequence & Funnel Planner)
+           ==================================================================== -->
+      <section id="tab-stage-3" class="stage-panel tab-panel" data-stage="stage-3" data-tab="sequence">
+        <div class="page-header">
+          <div>
+            <h2>Stage 3: Video Release Planner &amp; Funnel Calendar</h2>
+            <p>10-day cross-linked release cadence pairing Shorts and Long-form uploads to create algorithmic compounding and watch-time funnels.</p>
+          </div>
+          <div class="header-actions">
+            <label for="sequenceStartDateInput" style="font-size:12px; font-weight:600; color:var(--text-secondary);">Start Date:</label>
+            <input type="date" id="sequenceStartDateInput" />
+            <button id="rebuildSequenceBtn" class="btn btn-secondary">
+              &#128260; Rebuild Schedule
+            </button>
+            <button id="exportCsvCalendarBtn" class="btn btn-primary">
+              &#128229; Download CSV Calendar
+            </button>
+            <button id="exportIcsCalendarBtn" class="btn btn-secondary btn-sm" title="Download .ICS file for Google Calendar, Apple Calendar &amp; Outlook">
+              📅 Export Calendar (.ICS)
+            </button>
+          </div>
+        </div>
+
+        <!-- 10-Day Interconnected Release Funnel Sequence -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <div class="card-title">🔗 Interconnected Upload Sequence (Short-Form &harr; Long-Form Funnels)</div>
+            <span class="badge badge-funnel">Algorithmic Momentum Cadence</span>
+          </div>
+          <div id="funnelChainContainer" class="funnel-chain"></div>
+        </div>
+
+        <!-- Interactive Production Workflow Kanban -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Production Status Kanban Board</div>
+            <span class="badge badge-score-high">Click-to-Advance Workflow</span>
+          </div>
+          <div id="sequenceKanbanBoard" class="kanban-board"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       Storage & Settings Slide-Over Drawer
+       ========================================================================== -->
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <aside id="storageSettingsDrawer" class="drawer-panel" aria-label="Storage &amp; Settings Vault">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span>⚙️</span> Storage Vault &amp; Studio Settings
+      </div>
+      <button id="closeStorageDrawerBtn" class="btn btn-secondary btn-sm" title="Close Drawer">&#10005;</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Local Device Storage Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📁 Local Device Storage &amp; Google Drive</div>
+          <span class="badge badge-score-high">Offline-First Disk</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="intDriveFolderInput">Local Google Drive Folder Path</label>
+          <input type="text" id="intDriveFolderInput" placeholder="d:\YT APP\GoogleDrive_Sync" />
+          <span style="font-size:11.5px; color:var(--text-secondary); line-height:1.4; margin-top:2px;">
+            Writes Markdown scripts, CSV calendars, and JSON backups directly to this disk folder. Google Drive for Desktop automatically syncs this folder to the cloud.
+          </span>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 14px;">
+          <button id="syncLocalDriveNowBtn" class="btn btn-success btn-sm">&#128190; Sync to Local Folder Now</button>
+          <button id="openDriveFolderExplorerBtn" class="btn btn-secondary btn-sm" title="Open local sync folder directly in Windows File Explorer">&#128194; Open in Explorer</button>
+          <button id="copyDriveFolderPathBtn" class="btn btn-secondary btn-sm" title="Copy folder path to clipboard to open in Windows Explorer">📋 Copy Path</button>
+          <button id="pickBrowserDriveFolderBtn" class="btn btn-secondary btn-sm" title="Select folder via Browser File System Access API">📁 Pick Folder</button>
+        </div>
+
+        <!-- Synced Files Status Summary (SOL-11) -->
+        <div id="syncedFilesStatusList" style="margin-bottom: 14px;"></div>
+
+        <!-- Direct Exports & Restore -->
+        <div style="border-top:1px solid var(--border-subtle); padding-top:12px;">
+          <div style="font-size:11.5px; font-weight:700; margin-bottom:8px; color:var(--text-secondary); text-transform:uppercase;">
+            Direct File Exports &amp; Backup:
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="downloadMarkdownBundleBtn" class="btn btn-secondary btn-sm">&#128196; Export .md Script</button>
+            <button id="downloadJsonBackupBtn" class="btn btn-secondary btn-sm">&#128230; Export JSON Backup</button>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Restore studio workspace from JSON backup">
+              &#128228; Restore JSON
+              <input type="file" id="restoreJsonInput" accept=".json" style="display:none;" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Installation & Desktop Mode Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">&#128187; Install YTBender Desktop App</div>
+          <span class="badge badge-score-high">PWA &amp; Standalone</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:12px;">
+          Install YTBender as a standalone desktop application. It launches in its own dedicated, clutter-free window with the official logo, desktop shortcut, and runs 100% offline.
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="drawerPwaInstallBtn" class="btn btn-primary btn-sm">&#11015;&#65039; Install as Desktop App</button>
+          <button id="createDesktopShortcutBtn" class="btn btn-secondary btn-sm" title="Generate Windows Desktop shortcut with custom icon">&#128421;&#65039; Create Desktop Shortcut</button>
+        </div>
+        <div id="pwaInstallTip" style="margin-top:10px; font-size:11.5px; color:var(--text-muted); line-height:1.4;">
+          &#128161; <strong>Tip:</strong> You can also install directly from Chrome or Edge by clicking the <strong>Install</strong> icon (computer/down arrow) in the browser address bar.
+        </div>
+      </div>
+
+      <!-- System Diagnostics Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚡ Studio Health &amp; Diagnostics</div>
+        </div>
+        <div id="envDiagnosticsBox"></div>
+      </div>
+
+      <!-- Default AI Engine Selector -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 AI Assistant Engine</div>
+        </div>
+        <div class="form-group">
+          <label for="intPreferredAiSelect">Default AI Engine</label>
+          <select id="intPreferredAiSelect">
+            <option value="offline">Built-in Offline Studio Engine (100% Offline, 0ms Latency)</option>
+            <option value="ollama">Local Ollama LLM (100% Offline on Your PC)</option>
+            <option value="openai">OpenAI ChatGPT (Online API + Offline Fallback)</option>
+            <option value="gemini">Google Gemini (Online API + Offline Fallback)</option>
+            <option value="claude">Anthropic Claude (Online API + Offline Fallback)</option>
+            <option value="bridge">1-Click Prompt Bridge (Copy/Paste with Free Web AI)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Collapsible Advanced API Settings (Optional Cloud Features) -->
+      <div class="collapsible" id="advancedSettingsCollapsible">
+        <button class="collapsible-trigger" id="advancedSettingsToggleBtn" type="button">
+          <span>⚙️ Advanced Cloud &amp; API Keys (Optional)</span>
+          <span id="advancedSettingsArrow">&#9662;</span>
+        </button>
+        <div class="collapsible-content">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intOllamaUrlInput">Local Ollama Server URL</label>
+            <input type="text" id="intOllamaUrlInput" placeholder="http://localhost:11434" />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intOllamaModelInput">Ollama Model Name</label>
+            <input type="text" id="intOllamaModelInput" placeholder="llama3.2 / mistral / deepseek-r1" />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intOpenaiKeyInput">OpenAI API Key (Optional)</label>
+            <input type="password" id="intOpenaiKeyInput" placeholder="sk-..." />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intGeminiKeyInput">Google Gemini API Key (Optional)</label>
+            <input type="password" id="intGeminiKeyInput" placeholder="AIza..." />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intClaudeKeyInput">Anthropic Claude API Key (Optional)</label>
+            <input type="password" id="intClaudeKeyInput" placeholder="sk-ant-..." />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="intYoutubeKeyInput">YouTube Data API v3 Key (Optional)</label>
+            <input type="password" id="intYoutubeKeyInput" placeholder="AIza... (Uses built-in offline DB if blank)" />
+          </div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label for="intDriveTokenInput">Google Drive OAuth2 Token (Advanced Developer API)</label>
+            <input type="password" id="intDriveTokenInput" placeholder="ya29.a0... (Leave blank to use local folder sync)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- AUD-07: Collapsible Admin Diagnostics & Server Logs -->
+      <div class="collapsible" id="adminLogsCollapsible">
+        <button class="collapsible-trigger" id="adminLogsToggleBtn" type="button">
+          <span>🛡️ Admin Diagnostics &amp; Server Logs</span>
+          <span id="adminLogsArrow">&#9662;</span>
+        </button>
+        <div class="collapsible-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+            <span style="font-size:11.5px; color:var(--text-secondary);">Local Server Security, Uptime &amp; Request Logs</span>
+            <button id="refreshAdminLogsBtn" class="btn btn-secondary btn-sm" type="button" style="padding:4px 10px; font-size:11.5px;">
+              &#128260; Refresh Server Logs
+            </button>
+          </div>
+          <pre id="adminLogsOutput" class="admin-logs-pre">Click "Refresh Server Logs" to inspect local server status, CORS lock, API key redaction, and recent server.log entries.</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button id="saveIntegrationsBtn" class="btn btn-primary">
+        &#128190; Save All Settings
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==========================================================================
+       Modals: Prompt Bridge, Dirty-Flag Script Safeguard, Fullscreen Teleprompter
+       ========================================================================== -->
+
+  <!-- 1-Click AI Prompt Bridge Modal -->
+  <div id="promptBridgeModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="card-header">
+        <div class="card-title">&#128203; 1-Click AI Prompt Bridge (Free ChatGPT / Gemini / Claude)</div>
+        <button id="closeBridgeModalBtn" class="btn btn-secondary btn-sm">&#10005; Close</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px; line-height:1.45;">
+        No API keys needed! Copy this pre-engineered prompt containing your exact Niche, Topic, Tone, Pacing, and Structure. Paste into ChatGPT, Gemini, or Claude, and paste their output below.
+      </p>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label for="bridgeGeneratedPrompt">Step 1: Copy Structured Studio Prompt</label>
+        <textarea id="bridgeGeneratedPrompt" rows="7" readonly style="font-family:var(--font-mono); font-size:12px;"></textarea>
+        <div style="margin-top:6px;">
+          <button id="copyBridgePromptBtn" class="btn btn-primary btn-sm">&#128203; Copy Prompt to Clipboard</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label for="bridgePastedResponse">Step 2: Paste Response from ChatGPT / Gemini / Claude</label>
+        <textarea id="bridgePastedResponse" rows="7" placeholder="Paste the AI-generated script or hooks here..."></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button id="applyBridgeResponseBtn" class="btn btn-success">&#10004; Apply to Script &amp; Save Offline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dirty-Flag Script Safeguard Modal (SOL-13) -->
+  <div id="dirtyScriptConfirmModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="card-header">
+        <div class="card-title" style="color:var(--accent-warning);">&#9888;&#65039; Unsaved Script Changes Detected</div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-primary); margin-bottom:10px; line-height:1.5;">
+        You have edited this script in the editor. Generating a new script or loading a new topic will overwrite your current writing.
+      </p>
+      <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:18px;">
+        Choose whether to backup your current script first or keep your current text.
+      </p>
+      <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+        <button id="cancelDirtyOverwriteBtn" class="btn btn-secondary">Keep My Edits (Cancel)</button>
+        <button id="backupAndOverwriteBtn" class="btn btn-primary">Backup &amp; Overwrite</button>
+        <button id="discardAndOverwriteBtn" class="btn btn-ai" style="background:#ef4444; border-color:#dc2626;">Discard &amp; Overwrite</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teleprompter Fullscreen View (SOL-15 & LOOP-06) -->
+  <div id="teleprompterView" class="teleprompter-view">
+    <div class="teleprompter-bar">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button id="closeTeleprompterBtn" class="btn btn-secondary btn-sm">&#10005; Exit Teleprompter</button>
+        <span style="font-size:13px; font-weight:700;" id="teleprompterTitle">Teleprompter Mode</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <button type="button" id="teleprompterMirrorBtn" class="btn btn-secondary btn-sm" title="Flip text horizontally for physical beam-splitter teleprompter glass">🪞 Mirror Flip</button>
+        <button type="button" id="teleprompterFontDownBtn" class="btn btn-secondary btn-sm" title="Decrease font size">A-</button>
+        <button type="button" id="teleprompterFontUpBtn" class="btn btn-secondary btn-sm" title="Increase font size">A+</button>
+        <label for="teleprompterSpeedSlider" style="font-size:12px; color:var(--text-secondary);">Speed:</label>
+        <input type="range" id="teleprompterSpeedSlider" min="1" max="10" value="3" style="width:110px;" />
+        <button id="teleprompterPlayPauseBtn" class="btn btn-primary btn-sm">&#9654; Start Auto-Scroll</button>
+      </div>
+    </div>
+    <div class="teleprompter-eyeline-guide" aria-hidden="true"><span>🎯 CAMERA EYE-LINE ZONE</span></div>
+    <div class="teleprompter-scroll-box" id="teleprompterScrollBox">
+      <div id="teleprompterTextContainer" class="teleprompter-text"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Local Offline-First Scripts -->
+  <script src="js/offline-intelligence.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
